@@ -69,6 +69,7 @@ const SEA=[1.15,.9,1,1,1.05,1,1.2,1.25,.95,1,1,1.2];
 const ex=new Set(),HUB=[["ICN",37.46,126.44],["TPE",25.08,121.23],["HKG",22.31,113.91],["BKK",13.69,100.75],["SIN",1.36,103.99],["KUL",2.75,101.71],["DXB",25.25,55.36],["DOH",25.27,51.61],["IST",41.26,28.74]];
 $("air").innerHTML=[...FS.map(a=>[a,"fsc"]),...LC.map(a=>[a,"lcc"])].map(([a,t])=>`<span class="chip on" data-a="${a}">${a}<i class="t ${t}" style="margin-left:4px">${t.toUpperCase()}</i></span>`).join("");
 $("air").onclick=e=>{const c=e.target.closest(".chip");if(!c)return;const a=c.dataset.a;ex.has(a)?ex.delete(a):ex.add(a);c.classList.toggle("on",!ex.has(a));run()};
+$("mode").addEventListener("input",()=>{const v=$("mode").value;ex.clear();if(v=="fsc")LC.forEach(a=>ex.add(a));if(v=="lcc")FS.forEach(a=>ex.add(a));document.querySelectorAll("#air .chip").forEach(c=>c.classList.toggle("on",!ex.has(c.dataset.a)))});
 let sel=new Set(["KIX","ITM","UKB"]),trip="rt",view="m",range=[];
 const map=L.map("map",{worldCopyJump:true,minZoom:2}).setView([30,100],3);
 const tl=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:12,attribution:"© OpenStreetMap contributors"}).addTo(map);

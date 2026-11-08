@@ -38,7 +38,8 @@ table{border-collapse:collapse;width:100%;min-width:640px}th,td{padding:6px 8px;
 .leaflet-popup{position:absolute;text-align:center;margin-bottom:20px}.leaflet-popup-content-wrapper{background:#fff;color:#222;border-radius:10px;padding:1px;text-align:left;box-shadow:0 3px 14px rgba(0,0,0,.4)}.leaflet-popup-content{margin:10px 14px;font-size:13px;line-height:1.5}
 .leaflet-popup-tip-container{width:40px;height:20px;position:absolute;left:50%;margin-left:-20px;overflow:hidden;pointer-events:none}.leaflet-popup-tip{width:17px;height:17px;padding:1px;margin:-10px auto 0;transform:rotate(45deg);background:#fff}.leaflet-popup-close-button{position:absolute;top:0;right:0;padding:4px 8px;text-decoration:none;color:#666}
 </style></head><body>
-<header>✈ 世界航空券マップ <small>Phase 2</small> <span class="badge">サンプルデータ</span></header>
+<header>✈ 世界航空券マップ <small>Phase 3</small> <span class="badge">サンプルデータ</span></header>
+<div class="seg" id="tabs" style="margin:0 10px 8px"><button class="on" data-v="n">通常検索</button><button data-v="b">予算検索</button><button data-v="d">日程検索</button></div><div id="sum" style="margin:0 10px 8px;font-size:13px"></div>
 <div class="ctl">
  <div style="grid-column:1/-1"><label>出発空港（複数選択）</label><div class="chips" id="orig"></div></div>
  <div><label>往復 / 片道</label><div class="seg" id="trip"><button class="on" data-v="rt">往復</button><button data-v="ow">片道</button></div></div>
@@ -49,11 +50,12 @@ table{border-collapse:collapse;width:100%;min-width:640px}th,td{padding:6px 8px;
  <div><label>航空会社タイプ</label><select id="mode"><option value="both">LCCを含む</option><option value="fsc">FSCのみ</option><option value="lcc">LCCのみ</option></select></div>
  <div><label>最大乗継回数</label><select id="stops"><option value="0">直行のみ</option><option value="1">1回まで</option><option value="2" selected>2回まで</option></select></div>
  <div><label>予算上限 <b id="bv"></b></label><input type="range" id="bud" min="3" max="60" step="1" value="15"></div>
- <div><label>所要時間上限 <b id="dv"></b></label><input type="range" id="dur" min="6" max="40" value="40"></div><div><label>LCC+FSC組合せ（別切り）</label><label style="color:var(--tx);font-size:13px"><input type="checkbox" id="mix" checked> 含める</label></div><div><label>予算超過の都市</label><label style="color:var(--tx);font-size:13px"><input type="checkbox" id="hide"> 非表示にする</label></div><div style="grid-column:1/-1"><label>航空会社（タップで除外／もう一度タップで復帰）</label><div class="chips" id="air"></div></div><div><label>色分け</label><select id="cm"><option value="auto">価格分布で自動</option><option value="fix">固定の金額帯</option></select></div>
+ <div><label>所要時間上限 <b id="dv"></b></label><input type="range" id="dur" min="6" max="40" value="40"></div><div><label>LCC+FSC組合せ（別切り）</label><label style="color:var(--tx);font-size:13px"><input type="checkbox" id="mix" checked> 含める</label></div><div><label>予算超過の都市</label><label style="color:var(--tx);font-size:13px"><input type="checkbox" id="hide"> 非表示にする</label></div><div style="grid-column:1/-1"><label>航空会社（タップで除外／もう一度タップで復帰）</label><div class="chips" id="air"></div></div><div><label>預け荷物</label><select id="bag"><option value="0">なし</option><option value="1">1個</option><option value="2">2個</option></select></div><div><label>追加料金（LCC）</label><label style="color:var(--tx);font-size:13px"><input type="checkbox" id="seat"> 座席指定</label> <label style="color:var(--tx);font-size:13px"><input type="checkbox" id="meal"> 機内食</label></div><div><label>価格の基準</label><select id="basis"><option value="base">基本運賃</option><option value="all">追加料金込み（推定）</option></select></div><div><label>色分け</label><select id="cm"><option value="auto">価格分布で自動</option><option value="fix">固定の金額帯</option></select></div>
  <div><label>地図表示</label><div class="seg" id="view"><button class="on" data-v="m">マーカー</button><button data-v="h">ヒートマップ</button></div></div>
  <div><label>並べ替え</label><select id="sort"><option value="p">価格順</option><option value="t">所要時間順</option><option value="s">直行優先</option></select></div>
 </div>
 <div class="mapwrap"><div id="map"></div><div id="legend"></div></div>
+<div class="tbl" id="cal" style="display:none;padding:10px"></div>
 <div class="tbl"><table><thead><tr><th>都市</th><th>国</th><th>空港</th><th>出発</th><th>航空会社</th><th>区分</th><th>価格</th><th>予算残</th><th>飛行時間</th><th>乗継</th></tr></thead><tbody id="rows"></tbody></table></div>
 <p class="note">※ 表示価格はすべて<b>サンプル（距離とシーズンから算出した模擬値）</b>で、実際の運賃ではありません。LCCは基本運賃のみで手荷物等は含みません。実データ連携はPhase 4で対応予定。地図タイルはOpenStreetMap（国境・地名入り、ダーク調に加工）を利用します。外部画像をブロックするプレビュー環境では、簡易地図で表示されます。</p>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
@@ -84,7 +86,7 @@ $("orig").onclick=e=>{const c=e.target.dataset.c;if(!c)return;sel.has(c)?sel.siz
 for(const id of["trip","view"])$(id).onclick=e=>{const v=e.target.dataset.v;if(!v)return;[...$(id).children].forEach(b=>b.classList.toggle("on",b===e.target));id=="trip"?trip=v:view=v;run()};
 document.querySelectorAll("input,select").forEach(e=>e.oninput=run);
 function calc(){
- const m=$("mode").value,mix=$("mix").checked,mh=+$("dur").value,ms=+$("stops").value,px=+$("pax").value,cl=+$("cls").value,mo=new Date($("d1").value).getMonth()||0,ow=trip=="ow"?.55:1,out=[];
+ const m=$("mode").value,mix=$("mix").checked,mh=+$("dur").value,bag=+$("bag").value,seat=$("seat").checked,meal=$("meal").checked,basis=$("basis").value,ms=+$("stops").value,px=+$("pax").value,cl=+$("cls").value,mo=new Date($("d1").value).getMonth()||0,ow=trip=="ow"?.55:1,out=[];
  for(const c of D){const row={c,per:{},best:null};
   for(const o of O.filter(o=>sel.has(o[0]))){const d=km(o[3],o[4],c[3],c[4]),h=hv(c[0]),hh=hv(c[0]+o[0]);
    const n=.88+(h%25)/100,no=.96+(hh%9)/100,fs=(h%2&&d>6000&&d<9000)?1:d<6000?0:1;
@@ -92,7 +94,7 @@ function calc(){
    const opts=[{t:"FSC",p:base,s:fst,a:FS[(h+hv(o[0]))%FS.length]}];
    if(d<11500&&cl==1)opts.push({t:"LCC",p:base*.58,s:Math.min(2,fst+(d>3500?1:0)),a:LC[h%(d<4500?6:2)+(d>=4500?[2,6][h%2]-h%2*0:0)]||"Scoot"});
    if(mix&&m=="both"&&d>2500&&cl==1){let bh=null,bd=1e9;for(const H of HUB){const t=km(o[3],o[4],H[1],H[2])+km(H[1],H[2],c[3],c[4]);if(H[0]!=c[0]&&t<bd){bd=t;bh=H}}if(bh&&bd<d*1.35)opts.push({t:"MIX",p:base*.76,s:Math.max(1,fst),a:LC[(h+1)%6]+"→"+FS[(h+3)%FS.length],hub:bh[0],sep:1,dd:bd})}
-for(const x of opts){if(m=="fsc"&&x.t!="FSC"||m=="lcc"&&x.t!="LCC"||x.s>ms)continue;x.o=o[0];x.h=(x.dd||d)/800+.7+x.s*2.5;if((mh<40&&x.h>mh)||x.a.split("→").some(a=>ex.has(a)))continue;
+for(const x of opts){if(m=="fsc"&&x.t!="FSC"||m=="lcc"&&x.t!="LCC"||x.s>ms)continue;x.o=o[0];x.h=(x.dd||d)/800+.7+x.s*2.5;if((mh<40&&x.h>mh)||x.a.split("→").some(a=>ex.has(a)))continue;x.bp=x.p;{const lg=trip=="ow"?1:2,e=(bag*4500+(seat?1200:0)+(meal?1500:0))*lg*px;x.ex=x.t=="FSC"?0:x.t=="LCC"?e+1000:e*.7+1500}if(basis=="all")x.p+=x.ex;
     if(!(o[0] in row.per)||x.p<row.per[o[0]].p)row.per[o[0]]=x;if(!row.best||x.p<row.best.p)row.best=x}}
   if(row.best)out.push(row)}
  return out}
@@ -105,11 +107,30 @@ function run(){
  $("legend").innerHTML="<b>価格凡例</b><br>"+COL.map((c,i)=>`<i style="background:${c}"></i>${NAME[i]} ${i==0?"〜"+yn(b[0]):i==4?yn(b[3])+"〜":yn(b[i-1])+"〜"+yn(b[i])}`).join("<br>")+"<br><span style='opacity:.7'>グレー＝予算超過</span>";
  const sort=$("sort").value;rows.sort((a,z)=>sort=="t"?a.best.h-z.best.h:sort=="s"?a.best.s-z.best.s||a.best.p-z.best.p:a.best.p-z.best.p);
  for(const r of rows){const x=r.best,c=r.c,over=x.p>bud,col=COL[cls(x.p,b)];
-  const pop=`<b>${c[1]}</b> (${c[0]}) ${c[2]}<br>${[...Object.values(r.per)].sort((a,z)=>a.p-z.p).map(v=>`${v.o}発: ${yn(v.p)} ${v.a}(${v.t}) 乗継${v.s}${v.hub?"("+v.hub+")":""}${v.sep?"<br><small style='color:#c92a2a'>⚠別切り："+v.hub+"で乗継。乗継失敗時の保護なし／預け荷物の受取・再チェックイン／入国要件に注意</small>":""}`).join("<br>")}<br><small>※サンプル価格</small>`;
+  const pop=`<b>${c[1]}</b> (${c[0]}) ${c[2]}<br>${[...Object.values(r.per)].sort((a,z)=>a.p-z.p).map(v=>`${v.o}発: ${yn(v.p)}${$("basis").value=="all"?"(基本"+yn(v.bp)+"+追加"+yn(v.ex)+")":""} ${v.a}(${v.t}) 乗継${v.s}${v.hub?"("+v.hub+")":""}${v.sep?"<br><small style='color:#c92a2a'>⚠別切り："+v.hub+"で乗継。乗継失敗時の保護なし／預け荷物の受取・再チェックイン／入国要件に注意</small>":""}`).join("<br>")}<br><small>※サンプル価格</small>`;
   if(view=="h"){const cc=L.circle([c[3],c[4]],{radius:1.1e6,stroke:false,fillColor:col,fillOpacity:over?.08:.3,interactive:false}).addTo(lay)}
   const m=L.marker([c[3],c[4]],{icon:L.divIcon({className:"",html:(view=="h"||over||x.p>lim)?`<div class="pd ${over?"gray":""}" style="--c:${over?"#888":col}"></div>`:`<div class="pm" style="--c:${col}">${map.getZoom()>=4?`<small>${c[1]}・${c[2]}</small>`:""}<b>${map.getZoom()>=4?yn(x.p):"¥"+Math.round(x.p/1000)+"k"}</b></div>`,iconSize:[0,0],iconAnchor:[0,0]}),zIndexOffset:-Math.round(x.p/1000)}).bindPopup(pop).addTo(lay);mk[c[0]]=m}
- $("rows").innerHTML=rows.map(r=>{const x=r.best,c=r.c,rem=bud-x.p;return`<tr class="r" data-c="${c[0]}"><td>${c[1]}</td><td>${c[2]}</td><td>${c[0]}</td><td>${x.o}</td><td>${x.a}${x.sep?" <small>別切り</small>":""}</td><td><span class="t ${x.t.toLowerCase()}">${x.t}</span></td><td><b>${yn(x.p)}</b> <small>サンプル</small></td><td style="color:${rem<0?"#d6402e":"#1b7f3b"}">${rem<0?"−":""}${yn(Math.abs(rem))}</td><td>${x.h.toFixed(1)}h</td><td>${x.s?x.s+"回"+(x.hub?"("+x.hub+")":""):"直行"}</td></tr>`}).join("")||"<tr><td colspan=10>条件に合う目的地がありません</td></tr>"}
+ $("rows").innerHTML=rows.map(r=>{const x=r.best,c=r.c,rem=bud-x.p;return`<tr class="r" data-c="${c[0]}"><td>${c[1]}</td><td>${c[2]}</td><td>${c[0]}</td><td>${x.o}</td><td>${x.a}${x.sep?" <small>別切り</small>":""}</td><td><span class="t ${x.t.toLowerCase()}">${x.t}</span></td><td><b>${yn(x.p)}</b> <small>基本${yn(x.bp)}+追加${yn(x.ex)}（推定）</small></td><td style="color:${rem<0?"#d6402e":"#1b7f3b"}">${rem<0?"−":""}${yn(Math.abs(rem))}</td><td>${x.h.toFixed(1)}h</td><td>${x.s?x.s+"回"+(x.hub?"("+x.hub+")":""):"直行"}</td></tr>`}).join("")||"<tr><td colspan=10>条件に合う目的地がありません</td></tr>";extra(rows,bud)}
 $("rows").onclick=e=>{const t=e.target.closest("tr.r");if(!t)return;const m=mk[t.dataset.c],id=t.dataset.c;map.once("moveend",()=>mk[id]&&mk[id].openPopup());map.flyTo(m.getLatLng(),5);$("map").scrollIntoView({behavior:"smooth"})};
+let tab="n",calC="";
+$("tabs").onclick=e=>{const v=e.target.dataset.v;if(!v)return;tab=v;[...$("tabs").children].forEach(b=>b.classList.toggle("on",b===e.target));$("hide").checked=v=="b";$("cal").style.display=v=="d"?"block":"none";run()};
+$("cal").onchange=e=>{if(e.target.id=="calsel"){calC=e.target.value;run()}};
+function extra(rows,bud){
+ $("sum").innerHTML=tab=="b"?`予算 <b>${yn(bud)}</b> 以内：<b>${rows.filter(r=>r.best.p<=bud).length}</b> 都市（全${rows.length}都市中）。スライダーを動かすと行ける範囲の広がりを確認できます。`:tab=="d"?"日程をずらした価格カレンダー（出発日×帰国日、前後3日）":"";
+ if(tab!="d")return;const cal=$("cal"),r=rows.find(x=>x.c[0]==calC)||rows[0];
+ const d1=new Date($("d1").value),d2=new Date($("d2").value);
+ if(!r||trip=="ow"||isNaN(d1)||isNaN(d2)||d2<=d1){cal.innerHTML="往復を選び、出発日より後の帰国日を入力してください。";return}
+ calC=r.c[0];
+ const wd=[1.06,.94,.92,.95,1,1.1,1.12],wr=[1.08,1.02,.96,.94,.97,1.03,1.05],iso=a=>a.toISOString().slice(0,10),sh=(a,n)=>new Date(a.getTime()+n*864e5);
+ const f=(a,b)=>SEA[a.getMonth()]*wd[a.getDay()]*wr[b.getDay()]*(1+((hv(calC+iso(a)+iso(b))%13)-6)/100)*((b-a)/864e5<4?1.05:1);
+ const base=r.best.p/f(d1,d2),N=3,W=2*N+1,cells=[];let mn=1e12,mx=0,best=null;
+ for(let j=-N;j<=N;j++)for(let i=-N;i<=N;i++){const a=sh(d1,i),b=sh(d2,j);if(b<=a){cells.push(null);continue}const p=base*f(a,b);cells.push({p,a,b});if(p<mn){mn=p;best={p,a,b}}if(p>mx)mx=p}
+ const L=a=>`${a.getMonth()+1}/${a.getDate()}`,cur=r.best.p;
+ let h=`<div style="margin-bottom:8px"><label>目的地</label><select id="calsel">${rows.map(x=>`<option value="${x.c[0]}" ${x.c[0]==calC?"selected":""}>${x.c[1]}（${yn(x.best.p)}〜）</option>`).join("")}</select></div>`;
+ h+=`<div style="overflow-x:auto"><table style="min-width:0;font-size:11px;text-align:center"><tr><th style="padding:3px">帰/出</th>${[...Array(W)].map((_,i)=>`<th style="padding:3px">${L(sh(d1,i-N))}</th>`).join("")}</tr>`;
+ for(let j=0;j<W;j++){h+=`<tr><th style="padding:3px">${L(sh(d2,j-N))}</th>`;for(let i=0;i<W;i++){const c=cells[j*W+i];if(!c){h+="<td>–</td>";continue}const t=(c.p-mn)/(mx-mn||1),df=Math.round((c.p-cur)/1000);h+=`<td style="padding:3px;background:hsl(${120*(1-t)} 55% 38%);color:#fff;${c.p==mn?"outline:2px solid #fff;outline-offset:-2px;font-weight:700":""}">${Math.round(c.p/1000)}k<br><small>${df>0?"+":""}${df}k</small></td>`}h+="</tr>"}
+ h+=`</table></div><p style="margin:8px 0 0">最安：<b>${L(best.a)}出発 → ${L(best.b)}帰国 ${yn(best.p)}</b>（現在の日程より ${yn(Math.abs(cur-best.p))} ${best.p<cur?"安い":"高い"}）。縦軸は帰国日、横軸は出発日、セル下段は現在の日程との差です。※サンプル価格</p>`;
+ cal.innerHTML=h}
 run();
 let zb=map.getZoom()>=4;map.on("zoomend",()=>{const n=map.getZoom()>=4;if(n!==zb){zb=n;run()}});
 </script></body></html>

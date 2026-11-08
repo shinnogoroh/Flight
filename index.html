@@ -1,0 +1,109 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>世界航空券マップ Phase 1</title><link rel="icon" href="data:,">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f6f7f9;--card:#fff;--tx:#1d2330;--mu:#667085;--bd:#d9dde5;--ac:#1a73e8}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#14171c;--card:#1e232b;--tx:#e8ebf0;--mu:#9aa3b2;--bd:#343b47;--ac:#6ea8ff}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.5 -apple-system,"Hiragino Sans","Noto Sans JP",sans-serif}
+header{padding:10px 14px;font-weight:700;font-size:16px}header small{font-weight:400;color:var(--mu);margin-left:8px}
+.badge{display:inline-block;background:#fde68a;color:#7a5a00;border-radius:4px;padding:0 6px;font-size:11px;font-weight:600}
+.ctl{background:var(--card);border:1px solid var(--bd);border-radius:10px;margin:0 10px 10px;padding:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+label{display:block;font-size:11px;color:var(--mu);margin-bottom:2px}
+input,select,button{font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:5px 7px;max-width:100%}
+input[type=range]{width:100%;padding:0}
+.chips{display:flex;flex-wrap:wrap;gap:4px}.chip{cursor:pointer;border-radius:14px;padding:2px 9px;font-size:12px}.chip.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.seg{display:flex}.seg button{border-radius:0;cursor:pointer}.seg button:first-child{border-radius:6px 0 0 6px}.seg button:last-child{border-radius:0 6px 6px 0}.seg .on{background:var(--ac);color:#fff}
+.mapwrap{position:relative;margin:0 10px 10px;border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+#map{height:62vh;min-height:380px;background:#0b1633}
+#legend{position:absolute;left:8px;bottom:22px;z-index:900;background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:6px 9px;font-size:11px}
+#legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px}
+.pm{position:relative;width:max-content;background:#1f2430;color:#fff;border-radius:10px;padding:3px 10px;white-space:nowrap;text-align:center;line-height:1.25;box-shadow:0 2px 8px rgba(0,0,0,.55);transform:translate(-50%,calc(-100% - 16px));border-bottom:3px solid var(--c)}
+.pm small{display:block;font-size:11px;font-weight:400;color:#cfd6e4}.pm b{font-size:14px}
+.pm::after{content:"✈";position:absolute;left:50%;top:100%;transform:translate(-50%,5px);width:20px;height:20px;border-radius:50%;background:var(--c);color:#111;font-size:11px;line-height:16px;border:2px solid #fff}
+.pd{width:14px;height:14px;border-radius:50%;background:var(--c);border:2px solid #fff;transform:translate(-50%,-50%)}
+.gray{filter:grayscale(1);opacity:.55}
+.tbl{margin:0 10px 16px;background:var(--card);border:1px solid var(--bd);border-radius:10px;overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px}th,td{padding:6px 8px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap}tr.r{cursor:pointer}tr.r:hover{background:rgba(120,140,180,.12)}
+.t{font-size:11px;border-radius:3px;padding:0 5px;color:#fff}.lcc{background:#e8590c}.fsc{background:#1c7ed6}
+.note{margin:0 10px 18px;color:var(--mu);font-size:12px}
+.leaflet-container{overflow:hidden;position:relative;touch-action:none;outline:0}
+.leaflet-pane,.leaflet-tile,.leaflet-marker-icon,.leaflet-tile-container,.leaflet-map-pane svg,.leaflet-zoom-box{position:absolute;left:0;top:0}
+.leaflet-tile{width:256px;height:256px;user-select:none}.leaflet-pane{z-index:400}.leaflet-tile-pane{z-index:200}.leaflet-overlay-pane{z-index:400}.leaflet-marker-pane{z-index:600}.leaflet-popup-pane{z-index:700}
+.leaflet-zoom-animated{transform-origin:0 0}.leaflet-zoom-anim .leaflet-zoom-animated{transition:transform .25s cubic-bezier(0,0,.25,1)}.leaflet-zoom-anim .leaflet-tile{transition:none}
+.leaflet-interactive{cursor:pointer}.leaflet-control{position:relative;z-index:800;pointer-events:auto;float:left;clear:both}
+.leaflet-top,.leaflet-bottom{position:absolute;z-index:1000;pointer-events:none}.leaflet-top{top:0}.leaflet-bottom{bottom:0}.leaflet-left{left:0}.leaflet-right{right:0}.leaflet-right .leaflet-control{float:right}.leaflet-left .leaflet-control{margin-left:10px}.leaflet-top .leaflet-control{margin-top:10px}.leaflet-bottom .leaflet-control{margin-bottom:6px}.leaflet-right .leaflet-control{margin-right:6px}
+.leaflet-bar{box-shadow:0 1px 4px rgba(0,0,0,.4);border-radius:4px;overflow:hidden}.leaflet-bar a{display:block;width:32px;height:32px;line-height:32px;text-align:center;background:#fff;color:#000;text-decoration:none;border-bottom:1px solid #ccc;font-size:18px}
+.leaflet-control-attribution{background:rgba(255,255,255,.8);font-size:11px;padding:0 5px;color:#333}.leaflet-control-attribution a{color:#0078a8}
+.leaflet-popup{position:absolute;text-align:center;margin-bottom:20px}.leaflet-popup-content-wrapper{background:#fff;color:#222;border-radius:10px;padding:1px;text-align:left;box-shadow:0 3px 14px rgba(0,0,0,.4)}.leaflet-popup-content{margin:10px 14px;font-size:13px;line-height:1.5}
+.leaflet-popup-tip-container{width:40px;height:20px;position:absolute;left:50%;margin-left:-20px;overflow:hidden;pointer-events:none}.leaflet-popup-tip{width:17px;height:17px;padding:1px;margin:-10px auto 0;transform:rotate(45deg);background:#fff}.leaflet-popup-close-button{position:absolute;top:0;right:0;padding:4px 8px;text-decoration:none;color:#666}
+</style></head><body>
+<header>✈ 世界航空券マップ <small>Phase 1</small> <span class="badge">サンプルデータ</span></header>
+<div class="ctl">
+ <div style="grid-column:1/-1"><label>出発空港（複数選択）</label><div class="chips" id="orig"></div></div>
+ <div><label>往復 / 片道</label><div class="seg" id="trip"><button class="on" data-v="rt">往復</button><button data-v="ow">片道</button></div></div>
+ <div><label>出発日</label><input type="date" id="d1" value="2027-10-10"></div>
+ <div><label>帰国日</label><input type="date" id="d2" value="2027-10-16"></div>
+ <div><label>人数</label><select id="pax"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+ <div><label>座席クラス</label><select id="cls"><option value="1">エコノミー</option><option value="1.5">プレミアムエコノミー</option><option value="2.8">ビジネス</option></select></div>
+ <div><label>航空会社タイプ</label><select id="mode"><option value="both">LCCを含む</option><option value="fsc">FSCのみ</option><option value="lcc">LCCのみ</option></select></div>
+ <div><label>最大乗継回数</label><select id="stops"><option value="0">直行のみ</option><option value="1">1回まで</option><option value="2" selected>2回まで</option></select></div>
+ <div><label>予算上限 <b id="bv"></b></label><input type="range" id="bud" min="3" max="60" step="1" value="15"></div>
+ <div><label>色分け</label><select id="cm"><option value="auto">価格分布で自動</option><option value="fix">固定の金額帯</option></select></div>
+ <div><label>地図表示</label><div class="seg" id="view"><button class="on" data-v="m">マーカー</button><button data-v="h">ヒートマップ</button></div></div>
+ <div><label>並べ替え</label><select id="sort"><option value="p">価格順</option><option value="t">所要時間順</option><option value="s">直行優先</option></select></div>
+</div>
+<div class="mapwrap"><div id="map"></div><div id="legend"></div></div>
+<div class="tbl"><table><thead><tr><th>都市</th><th>国</th><th>空港</th><th>出発</th><th>航空会社</th><th>区分</th><th>価格</th><th>予算残</th><th>飛行時間</th><th>乗継</th></tr></thead><tbody id="rows"></tbody></table></div>
+<p class="note">※ 表示価格はすべて<b>サンプル（距離とシーズンから算出した模擬値）</b>で、実際の運賃ではありません。LCCは基本運賃のみで手荷物等は含みません。実データ連携はPhase 4で対応予定。地図タイルはCARTO/OpenStreetMap（国境・地名入り）を利用します。外部画像をブロックするプレビュー環境では、簡易地図で表示されます。</p>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+const D=[["ICN","ソウル","韓国",37.46,126.44],["TPE","台北","台湾",25.08,121.23],["HKG","香港","香港",22.31,113.91],["BKK","バンコク","タイ",13.69,100.75],["SIN","シンガポール","シンガポール",1.36,103.99],["KUL","クアラルンプール","マレーシア",2.75,101.71],["MNL","マニラ","フィリピン",14.51,121.02],["CEB","セブ","フィリピン",10.31,123.98],["SGN","ホーチミン","ベトナム",10.82,106.66],["HAN","ハノイ","ベトナム",21.22,105.81],["DPS","バリ","インドネシア",-8.75,115.17],["CGK","ジャカルタ","インドネシア",-6.13,106.66],["DEL","デリー","インド",28.56,77.1],["DXB","ドバイ","UAE",25.25,55.36],["IST","イスタンブール","トルコ",41.26,28.74],["CDG","パリ","フランス",49.01,2.55],["LHR","ロンドン","英国",51.47,-.45],["FCO","ローマ","イタリア",41.8,12.25],["FRA","フランクフルト","ドイツ",50.03,8.57],["AMS","アムステルダム","オランダ",52.31,4.76],["BCN","バルセロナ","スペイン",41.3,2.08],["LIS","リスボン","ポルトガル",38.77,-9.13],["HEL","ヘルシンキ","フィンランド",60.32,24.96],["VIE","ウィーン","オーストリア",48.11,16.57],["PRG","プラハ","チェコ",50.1,14.26],["CAI","カイロ","エジプト",30.12,31.41],["JNB","ヨハネスブルグ","南アフリカ",-26.14,28.24],["JFK","ニューヨーク","米国",40.64,-73.78],["LAX","ロサンゼルス","米国",33.94,-118.41],["SFO","サンフランシスコ","米国",37.62,-122.38],["HNL","ホノルル","米国",21.32,-157.92],["YVR","バンクーバー","カナダ",49.19,-123.18],["MEX","メキシコシティ","メキシコ",19.44,-99.07],["GRU","サンパウロ","ブラジル",-23.43,-46.47],["SYD","シドニー","豪州",-33.94,151.18],["MEL","メルボルン","豪州",-37.67,144.84],["AKL","オークランド","NZ",-37.01,174.79],["GUM","グアム","米国領",13.48,144.8],["HAM","ハンブルク","ドイツ",53.63,9.99],["BER","ベルリン","ドイツ",52.36,13.5],["MUC","ミュンヘン","ドイツ",48.35,11.79],["ZRH","チューリッヒ","スイス",47.46,8.55],["GVA","ジュネーブ","スイス",46.24,6.11],["MXP","ミラノ","イタリア",45.63,8.72],["VCE","ヴェネツィア","イタリア",45.51,12.35],["FLR","フィレンツェ","イタリア",43.81,11.2],["NAP","ナポリ","イタリア",40.89,14.29],["NCE","ニース","フランス",43.66,7.22],["BRU","ブリュッセル","ベルギー",50.9,4.48],["MAD","マドリード","スペイン",40.47,-3.57],["BUD","ブダペスト","ハンガリー",47.44,19.26],["WAW","ワルシャワ","ポーランド",52.17,20.97],["KRK","クラクフ","ポーランド",50.08,19.78],["CPH","コペンハーゲン","デンマーク",55.62,12.66],["ARN","ストックホルム","スウェーデン",59.65,17.92],["OSL","オスロ","ノルウェー",60.19,11.1],["DUB","ダブリン","アイルランド",53.42,-6.27],["ATH","アテネ","ギリシャ",37.94,23.94],["DBV","ドゥブロヴニク","クロアチア",42.56,18.27],["MLA","マルタ","マルタ",35.86,14.48],["EDI","エディンバラ","英国",55.95,-3.37],["MAN","マンチェスター","英国",53.35,-2.27],["PUS","釜山","韓国",35.18,128.94],["HKT","プーケット","タイ",8.11,98.32],["CNX","チェンマイ","タイ",18.77,98.96],["DAD","ダナン","ベトナム",16.04,108.2],["REP","シェムリアップ","カンボジア",13.41,103.81],["KHH","高雄","台湾",22.58,120.35],["BOM","ムンバイ","インド",19.09,72.87],["DOH","ドーハ","カタール",25.27,51.61],["ORD","シカゴ","米国",41.98,-87.9],["SEA","シアトル","米国",47.45,-122.31],["YYZ","トロント","カナダ",43.68,-79.63],["PEK","北京","中国",40.08,116.6],["PVG","上海","中国",31.14,121.81],["CTS","札幌","日本",43.06,141.69],["OKA","那覇","日本",26.2,127.65]];
+const O=[["KIX","関西",1,34.43,135.23,1],["ITM","伊丹",1.08,34.79,135.44,1],["UKB","神戸",1.12,34.63,135.22,1],["NGO","中部",1.05,34.86,136.81,0],["HND","羽田",1.1,35.55,139.78,0],["NRT","成田",1.1,35.77,140.39,0],["FUK","福岡",1.1,33.59,130.45,0]];
+const LC=["Peach","Jetstar","Scoot","AirAsia","VietJet","Cebu Pacific","ZIPAIR"],FS=["JAL","ANA","Korean Air","Cathay Pacific","Singapore Airlines","Emirates","Qatar Airways","Air France","Lufthansa","United","Delta","Qantas"];
+const COL=["#1b7f3b","#8fd18f","#f2d03b","#f39c3d","#d6402e"],FIX=[50000,100000,150000,250000],NAME=["最安","安い","中程度","高い","非常に高い"];
+const $=i=>document.getElementById(i),yen=n=>"¥"+Math.round(n/100)*100..toLocaleString?("¥"+(Math.round(n/100)*100).toLocaleString()):n;
+const hv=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h};
+const rad=x=>x*Math.PI/180,km=(a,b,c,d)=>{const x=Math.sin(rad(c-a)/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(rad(d-b)/2)**2;return 12742*Math.asin(Math.sqrt(x))};
+const SEA=[1.15,.9,1,1,1.05,1,1.2,1.25,.95,1,1,1.2];
+let sel=new Set(["KIX","ITM","UKB"]),trip="rt",view="m",range=[];
+const map=L.map("map",{worldCopyJump:true,minZoom:2}).setView([30,100],3);
+const tl=L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",{subdomains:"abcd",maxZoom:10,attribution:"© OpenStreetMap © CARTO"}).addTo(map);
+const land=L.layerGroup().addTo(map);
+for(let a=-60;a<=60;a+=30)L.polyline([[a,-180],[a,180]],{color:"#8fa6d6",weight:1,opacity:.12,interactive:false}).addTo(land);
+for(let a=-150;a<=180;a+=30)L.polyline([[-85,a],[85,a]],{color:"#8fa6d6",weight:1,opacity:.12,interactive:false}).addTo(land);
+[[[71,-156],[70,-141],[69,-125],[68,-110],[68,-95],[72,-95],[70,-85],[62,-93],[58,-94],[56,-80],[63,-78],[62,-70],[58,-67],[52,-56],[47,-53],[45,-61],[44,-66],[41,-70],[35,-76],[30,-81],[25,-80],[26,-97],[21,-97],[19,-95],[21,-87],[16,-88],[15,-83],[9,-82],[8,-77],[8,-80],[10,-85],[15,-92],[18,-103],[24,-108],[31,-114],[34,-120],[40,-124],[48,-125],[54,-133],[58,-138],[60,-146],[58,-152],[56,-160],[59,-165],[64,-166],[66,-162]],[[83,-35],[82,-60],[76,-70],[70,-52],[60,-44],[66,-35],[72,-22],[80,-18]],[[12,-72],[10,-62],[5,-52],[0,-50],[-5,-35],[-13,-38],[-23,-42],[-35,-57],[-41,-62],[-52,-68],[-55,-68],[-53,-74],[-42,-73],[-30,-71],[-18,-70],[-5,-81],[1,-80],[8,-77],[11,-74]],[[43,-9],[44,-1],[48,-5],[51,2],[54,8],[57,8],[59,11],[58,6],[63,5],[70,20],[71,28],[69,33],[67,41],[68,44],[68,60],[73,70],[76,100],[73,115],[72,130],[71,150],[69,170],[66,179],[62,172],[60,163],[57,156],[51,156],[53,142],[59,143],[54,136],[48,140],[43,132],[40,129],[35,129],[34,126],[38,125],[40,122],[37,122],[35,119],[30,122],[25,119],[21,110],[16,108],[10,107],[9,105],[13,100],[8,100],[1.5,104],[6,100],[16,97],[22,91],[15,80],[8,77],[21,72],[25,66],[25,57],[30,48],[24,52],[26,56],[22,59],[13,45],[16,42],[21,39],[28,34],[31,34],[36,36],[37,27],[40,26],[38,24],[40,20],[41,16],[38,16],[44,10],[43,5],[41,2],[37,-1],[36,-6],[37,-9]],[[31,32],[31,25],[33,11],[37,10],[35,-2],[35,-6],[28,-13],[21,-17],[15,-17],[10,-15],[5,-8],[5,-2],[6,3],[4,9],[-5,12],[-13,13],[-18,12],[-25,15],[-34,18],[-34,26],[-30,31],[-25,35],[-15,40],[-10,40],[-4,39],[2,45],[11,51],[12,44],[15,40],[22,37],[28,33]],[[-11,132],[-12,136],[-17,140],[-11,142],[-19,147],[-25,153],[-34,151],[-38,146],[-38,141],[-35,136],[-32,133],[-32,126],[-35,117],[-26,113],[-22,114],[-14,127]],[[41.5,141.4],[39,142],[35.5,140.8],[34.6,138.8],[33.5,135.8],[34.3,133],[34,131],[35.5,133],[37,137],[39,140],[40.7,140]],[[45.5,141.9],[43,145.5],[42,143],[41.8,140.5],[43,140.3]],[[33.9,131],[31.2,130.6],[32.5,129.7]],[[34,134.5],[33.2,134.2],[33.4,132.5],[34,133]],[[58.6,-5],[57.5,-2],[55,-1.5],[53,1.7],[51,1.3],[50,-5],[52,-4.5],[54.5,-3.5],[55.5,-5]],[[55,-8],[52,-6],[51.5,-10],[54,-10]],[[5.5,95.5],[2,101],[-2,106],[-5.9,105.8],[-3,100],[1,97]],[[7,117],[1,119],[-4,116],[-3,110],[2,109]],[[-6,106],[-6.5,111],[-8,114.5],[-8.5,111],[-7.5,106.5]],[[-2,132],[-3,141],[-8,147],[-10,150],[-9,141],[-8,138],[-4,133]],[[18.5,121],[14,124],[13.8,120.6],[16,120.3]],[[9.5,123],[7,126.5],[6.5,122]],[[25.2,121.6],[23,121.5],[22,120.8],[23.5,120.2]],[[9.8,80],[6,80.6],[7,79.8]],[[-34.5,173],[-37.5,178.5],[-41.5,175],[-39,173.8]],[[-40.5,172.5],[-41.5,174.2],[-46.5,169],[-46,166.5],[-43.5,170]],[[-12,49.3],[-25,47],[-24,43.7],[-16,44]],[[23,-82],[22,-78],[20,-74],[21.5,-77],[23,-80]],[[66.5,-22],[63.4,-19],[64.5,-14],[66,-15]]].forEach(p=>L.polygon(p,{color:"#4f8594",weight:1,fillColor:"#27505b",fillOpacity:1,interactive:false}).addTo(land));
+tl.on("tileload",()=>{if(map.hasLayer(land))map.removeLayer(land)});
+const lay=L.layerGroup().addTo(map),mk={};
+$("orig").innerHTML=O.map(o=>`<span class="chip ${sel.has(o[0])?"on":""}" data-c="${o[0]}">${o[0]} ${o[1]}</span>`).join("");
+$("orig").onclick=e=>{const c=e.target.dataset.c;if(!c)return;sel.has(c)?sel.size>1&&sel.delete(c):sel.add(c);e.target.classList.toggle("on",sel.has(c));run()};
+for(const id of["trip","view"])$(id).onclick=e=>{const v=e.target.dataset.v;if(!v)return;[...$(id).children].forEach(b=>b.classList.toggle("on",b===e.target));id=="trip"?trip=v:view=v;run()};
+document.querySelectorAll("input,select").forEach(e=>e.oninput=run);
+function calc(){
+ const m=$("mode").value,ms=+$("stops").value,px=+$("pax").value,cl=+$("cls").value,mo=new Date($("d1").value).getMonth()||0,ow=trip=="ow"?.55:1,out=[];
+ for(const c of D){const row={c,per:{},best:null};
+  for(const o of O.filter(o=>sel.has(o[0]))){const d=km(o[3],o[4],c[3],c[4]),h=hv(c[0]),hh=hv(c[0]+o[0]);
+   const n=.88+(h%25)/100,no=.96+(hh%9)/100,fs=(h%2&&d>6000&&d<9000)?1:d<6000?0:1;
+   const base=(15000+d*13)*n*no*o[2]*SEA[isNaN(mo)?9:mo]*ow*px*cl,fst=d<6000?0:d<9000?(h%2):d<14000?1:2;
+   const opts=[{t:"FSC",p:base,s:fst,a:FS[(h+hv(o[0]))%FS.length]}];
+   if(d<11500&&cl==1)opts.push({t:"LCC",p:base*.58,s:Math.min(2,fst+(d>3500?1:0)),a:LC[h%(d<4500?6:2)+(d>=4500?[2,6][h%2]-h%2*0:0)]||"Scoot"});
+   for(const x of opts){if(m=="fsc"&&x.t!="FSC"||m=="lcc"&&x.t!="LCC"||x.s>ms)continue;x.o=o[0];x.h=d/800+.7+x.s*2.5;
+    if(!(o[0] in row.per)||x.p<row.per[o[0]].p)row.per[o[0]]=x;if(!row.best||x.p<row.best.p)row.best=x}}
+  if(row.best)out.push(row)}
+ return out}
+function bands(rows){const ps=rows.map(r=>r.best.p).sort((a,b)=>a-b);
+ if($("cm").value=="fix")return FIX;if(!ps.length)return FIX;return[.2,.4,.6,.8].map(q=>ps[Math.min(ps.length-1,Math.floor(q*ps.length))])}
+const cls=(p,b)=>{let i=0;while(i<4&&p>b[i])i++;return i},yn=n=>"¥"+(Math.round(n/100)*100).toLocaleString();
+function run(){
+ const bud=$("bud").value*1e4;$("bv").textContent=yn(bud);
+ const rows=calc(),b=bands(rows),ps=rows.map(r=>r.best.p).sort((a,z)=>a-z),lim=map.getZoom()>=4?1e12:(ps[24]||1e12);lay.clearLayers();
+ $("legend").innerHTML="<b>価格凡例</b><br>"+COL.map((c,i)=>`<i style="background:${c}"></i>${NAME[i]} ${i==0?"〜"+yn(b[0]):i==4?yn(b[3])+"〜":yn(b[i-1])+"〜"+yn(b[i])}`).join("<br>")+"<br><span style='opacity:.7'>グレー＝予算超過</span>";
+ const sort=$("sort").value;rows.sort((a,z)=>sort=="t"?a.best.h-z.best.h:sort=="s"?a.best.s-z.best.s||a.best.p-z.best.p:a.best.p-z.best.p);
+ for(const r of rows){const x=r.best,c=r.c,over=x.p>bud,col=COL[cls(x.p,b)];
+  const pop=`<b>${c[1]}</b> (${c[0]}) ${c[2]}<br>${[...Object.values(r.per)].sort((a,z)=>a.p-z.p).map(v=>`${v.o}発: ${yn(v.p)} ${v.a}(${v.t}) 乗継${v.s}`).join("<br>")}<br><small>※サンプル価格</small>`;
+  if(view=="h"){const cc=L.circle([c[3],c[4]],{radius:1.1e6,stroke:false,fillColor:col,fillOpacity:over?.08:.3,interactive:false}).addTo(lay)}
+  const m=L.marker([c[3],c[4]],{icon:L.divIcon({className:"",html:(view=="h"||over||x.p>lim)?`<div class="pd ${over?"gray":""}" style="--c:${over?"#888":col}"></div>`:`<div class="pm" style="--c:${col}">${map.getZoom()>=4?`<small>${c[1]}・${c[2]}</small>`:""}<b>${map.getZoom()>=4?yn(x.p):"¥"+Math.round(x.p/1000)+"k"}</b></div>`,iconSize:[0,0],iconAnchor:[0,0]}),zIndexOffset:-Math.round(x.p/1000)}).bindPopup(pop).addTo(lay);mk[c[0]]=m}
+ $("rows").innerHTML=rows.map(r=>{const x=r.best,c=r.c,rem=bud-x.p;return`<tr class="r" data-c="${c[0]}"><td>${c[1]}</td><td>${c[2]}</td><td>${c[0]}</td><td>${x.o}</td><td>${x.a}</td><td><span class="t ${x.t.toLowerCase()}">${x.t}</span></td><td><b>${yn(x.p)}</b> <small>サンプル</small></td><td style="color:${rem<0?"#d6402e":"#1b7f3b"}">${rem<0?"−":""}${yn(Math.abs(rem))}</td><td>${x.h.toFixed(1)}h</td><td>${x.s?x.s+"回":"直行"}</td></tr>`}).join("")||"<tr><td colspan=10>条件に合う目的地がありません</td></tr>"}
+$("rows").onclick=e=>{const t=e.target.closest("tr.r");if(!t)return;const m=mk[t.dataset.c],id=t.dataset.c;map.once("moveend",()=>mk[id]&&mk[id].openPopup());map.flyTo(m.getLatLng(),5);$("map").scrollIntoView({behavior:"smooth"})};
+run();
+let zb=map.getZoom()>=4;map.on("zoomend",()=>{const n=map.getZoom()>=4;if(n!==zb){zb=n;run()}});
+</script></body></html>

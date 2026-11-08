@@ -22,7 +22,7 @@ input[type=range]{width:100%;padding:0}
 .pm small{display:block;font-size:11px;font-weight:400;color:#cfd6e4}.pm b{font-size:14px}
 .pm::after{content:"✈";position:absolute;left:50%;top:100%;transform:translate(-50%,5px);width:20px;height:20px;border-radius:50%;background:var(--c);color:#111;font-size:11px;line-height:16px;border:2px solid #fff}
 .pd{width:14px;height:14px;border-radius:50%;background:var(--c);border:2px solid #fff;transform:translate(-50%,-50%)}
-.gray{filter:grayscale(1);opacity:.55}
+.gray{filter:grayscale(1);opacity:.55}.mix{background:#7048e8}.chip i{font-style:normal}
 .tbl{margin:0 10px 16px;background:var(--card);border:1px solid var(--bd);border-radius:10px;overflow-x:auto}
 table{border-collapse:collapse;width:100%;min-width:640px}th,td{padding:6px 8px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap}tr.r{cursor:pointer}tr.r:hover{background:rgba(120,140,180,.12)}
 .t{font-size:11px;border-radius:3px;padding:0 5px;color:#fff}.lcc{background:#e8590c}.fsc{background:#1c7ed6}
@@ -38,7 +38,7 @@ table{border-collapse:collapse;width:100%;min-width:640px}th,td{padding:6px 8px;
 .leaflet-popup{position:absolute;text-align:center;margin-bottom:20px}.leaflet-popup-content-wrapper{background:#fff;color:#222;border-radius:10px;padding:1px;text-align:left;box-shadow:0 3px 14px rgba(0,0,0,.4)}.leaflet-popup-content{margin:10px 14px;font-size:13px;line-height:1.5}
 .leaflet-popup-tip-container{width:40px;height:20px;position:absolute;left:50%;margin-left:-20px;overflow:hidden;pointer-events:none}.leaflet-popup-tip{width:17px;height:17px;padding:1px;margin:-10px auto 0;transform:rotate(45deg);background:#fff}.leaflet-popup-close-button{position:absolute;top:0;right:0;padding:4px 8px;text-decoration:none;color:#666}
 </style></head><body>
-<header>✈ 世界航空券マップ <small>Phase 1</small> <span class="badge">サンプルデータ</span></header>
+<header>✈ 世界航空券マップ <small>Phase 2</small> <span class="badge">サンプルデータ</span></header>
 <div class="ctl">
  <div style="grid-column:1/-1"><label>出発空港（複数選択）</label><div class="chips" id="orig"></div></div>
  <div><label>往復 / 片道</label><div class="seg" id="trip"><button class="on" data-v="rt">往復</button><button data-v="ow">片道</button></div></div>
@@ -49,7 +49,7 @@ table{border-collapse:collapse;width:100%;min-width:640px}th,td{padding:6px 8px;
  <div><label>航空会社タイプ</label><select id="mode"><option value="both">LCCを含む</option><option value="fsc">FSCのみ</option><option value="lcc">LCCのみ</option></select></div>
  <div><label>最大乗継回数</label><select id="stops"><option value="0">直行のみ</option><option value="1">1回まで</option><option value="2" selected>2回まで</option></select></div>
  <div><label>予算上限 <b id="bv"></b></label><input type="range" id="bud" min="3" max="60" step="1" value="15"></div>
- <div><label>色分け</label><select id="cm"><option value="auto">価格分布で自動</option><option value="fix">固定の金額帯</option></select></div>
+ <div><label>所要時間上限 <b id="dv"></b></label><input type="range" id="dur" min="6" max="40" value="40"></div><div><label>LCC+FSC組合せ（別切り）</label><label style="color:var(--tx);font-size:13px"><input type="checkbox" id="mix" checked> 含める</label></div><div><label>予算超過の都市</label><label style="color:var(--tx);font-size:13px"><input type="checkbox" id="hide"> 非表示にする</label></div><div style="grid-column:1/-1"><label>航空会社（タップで除外／もう一度タップで復帰）</label><div class="chips" id="air"></div></div><div><label>色分け</label><select id="cm"><option value="auto">価格分布で自動</option><option value="fix">固定の金額帯</option></select></div>
  <div><label>地図表示</label><div class="seg" id="view"><button class="on" data-v="m">マーカー</button><button data-v="h">ヒートマップ</button></div></div>
  <div><label>並べ替え</label><select id="sort"><option value="p">価格順</option><option value="t">所要時間順</option><option value="s">直行優先</option></select></div>
 </div>
@@ -66,6 +66,9 @@ const $=i=>document.getElementById(i),yen=n=>"¥"+Math.round(n/100)*100..toLocal
 const hv=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h};
 const rad=x=>x*Math.PI/180,km=(a,b,c,d)=>{const x=Math.sin(rad(c-a)/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(rad(d-b)/2)**2;return 12742*Math.asin(Math.sqrt(x))};
 const SEA=[1.15,.9,1,1,1.05,1,1.2,1.25,.95,1,1,1.2];
+const ex=new Set(),HUB=[["ICN",37.46,126.44],["TPE",25.08,121.23],["HKG",22.31,113.91],["BKK",13.69,100.75],["SIN",1.36,103.99],["KUL",2.75,101.71],["DXB",25.25,55.36],["DOH",25.27,51.61],["IST",41.26,28.74]];
+$("air").innerHTML=[...FS.map(a=>[a,"fsc"]),...LC.map(a=>[a,"lcc"])].map(([a,t])=>`<span class="chip on" data-a="${a}">${a}<i class="t ${t}" style="margin-left:4px">${t.toUpperCase()}</i></span>`).join("");
+$("air").onclick=e=>{const c=e.target.closest(".chip");if(!c)return;const a=c.dataset.a;ex.has(a)?ex.delete(a):ex.add(a);c.classList.toggle("on",!ex.has(a));run()};
 let sel=new Set(["KIX","ITM","UKB"]),trip="rt",view="m",range=[];
 const map=L.map("map",{worldCopyJump:true,minZoom:2}).setView([30,100],3);
 const tl=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:12,attribution:"© OpenStreetMap contributors"}).addTo(map);
@@ -80,14 +83,15 @@ $("orig").onclick=e=>{const c=e.target.dataset.c;if(!c)return;sel.has(c)?sel.siz
 for(const id of["trip","view"])$(id).onclick=e=>{const v=e.target.dataset.v;if(!v)return;[...$(id).children].forEach(b=>b.classList.toggle("on",b===e.target));id=="trip"?trip=v:view=v;run()};
 document.querySelectorAll("input,select").forEach(e=>e.oninput=run);
 function calc(){
- const m=$("mode").value,ms=+$("stops").value,px=+$("pax").value,cl=+$("cls").value,mo=new Date($("d1").value).getMonth()||0,ow=trip=="ow"?.55:1,out=[];
+ const m=$("mode").value,mix=$("mix").checked,mh=+$("dur").value,ms=+$("stops").value,px=+$("pax").value,cl=+$("cls").value,mo=new Date($("d1").value).getMonth()||0,ow=trip=="ow"?.55:1,out=[];
  for(const c of D){const row={c,per:{},best:null};
   for(const o of O.filter(o=>sel.has(o[0]))){const d=km(o[3],o[4],c[3],c[4]),h=hv(c[0]),hh=hv(c[0]+o[0]);
    const n=.88+(h%25)/100,no=.96+(hh%9)/100,fs=(h%2&&d>6000&&d<9000)?1:d<6000?0:1;
    const base=(15000+d*13)*n*no*o[2]*SEA[isNaN(mo)?9:mo]*ow*px*cl,fst=d<6000?0:d<9000?(h%2):d<14000?1:2;
    const opts=[{t:"FSC",p:base,s:fst,a:FS[(h+hv(o[0]))%FS.length]}];
    if(d<11500&&cl==1)opts.push({t:"LCC",p:base*.58,s:Math.min(2,fst+(d>3500?1:0)),a:LC[h%(d<4500?6:2)+(d>=4500?[2,6][h%2]-h%2*0:0)]||"Scoot"});
-   for(const x of opts){if(m=="fsc"&&x.t!="FSC"||m=="lcc"&&x.t!="LCC"||x.s>ms)continue;x.o=o[0];x.h=d/800+.7+x.s*2.5;
+   if(mix&&m=="both"&&d>2500&&cl==1){let bh=null,bd=1e9;for(const H of HUB){const t=km(o[3],o[4],H[1],H[2])+km(H[1],H[2],c[3],c[4]);if(H[0]!=c[0]&&t<bd){bd=t;bh=H}}if(bh&&bd<d*1.35)opts.push({t:"MIX",p:base*.76,s:Math.max(1,fst),a:LC[(h+1)%6]+"→"+FS[(h+3)%FS.length],hub:bh[0],sep:1,dd:bd})}
+for(const x of opts){if(m=="fsc"&&x.t!="FSC"||m=="lcc"&&x.t!="LCC"||x.s>ms)continue;x.o=o[0];x.h=(x.dd||d)/800+.7+x.s*2.5;if((mh<40&&x.h>mh)||x.a.split("→").some(a=>ex.has(a)))continue;
     if(!(o[0] in row.per)||x.p<row.per[o[0]].p)row.per[o[0]]=x;if(!row.best||x.p<row.best.p)row.best=x}}
   if(row.best)out.push(row)}
  return out}
@@ -95,15 +99,15 @@ function bands(rows){const ps=rows.map(r=>r.best.p).sort((a,b)=>a-b);
  if($("cm").value=="fix")return FIX;if(!ps.length)return FIX;return[.2,.4,.6,.8].map(q=>ps[Math.min(ps.length-1,Math.floor(q*ps.length))])}
 const cls=(p,b)=>{let i=0;while(i<4&&p>b[i])i++;return i},yn=n=>"¥"+(Math.round(n/100)*100).toLocaleString();
 function run(){
- const bud=$("bud").value*1e4;$("bv").textContent=yn(bud);
- const rows=calc(),b=bands(rows),ps=rows.map(r=>r.best.p).sort((a,z)=>a-z),lim=map.getZoom()>=4?1e12:(ps[24]||1e12);lay.clearLayers();
+ const bud=$("bud").value*1e4;$("bv").textContent=yn(bud);$("dv").textContent=$("dur").value>=40?"制限なし":$("dur").value+"時間";
+ const rows=calc().filter(r=>!$("hide").checked||r.best.p<=bud),b=bands(rows),ps=rows.map(r=>r.best.p).sort((a,z)=>a-z),lim=map.getZoom()>=4?1e12:(ps[24]||1e12);lay.clearLayers();
  $("legend").innerHTML="<b>価格凡例</b><br>"+COL.map((c,i)=>`<i style="background:${c}"></i>${NAME[i]} ${i==0?"〜"+yn(b[0]):i==4?yn(b[3])+"〜":yn(b[i-1])+"〜"+yn(b[i])}`).join("<br>")+"<br><span style='opacity:.7'>グレー＝予算超過</span>";
  const sort=$("sort").value;rows.sort((a,z)=>sort=="t"?a.best.h-z.best.h:sort=="s"?a.best.s-z.best.s||a.best.p-z.best.p:a.best.p-z.best.p);
  for(const r of rows){const x=r.best,c=r.c,over=x.p>bud,col=COL[cls(x.p,b)];
-  const pop=`<b>${c[1]}</b> (${c[0]}) ${c[2]}<br>${[...Object.values(r.per)].sort((a,z)=>a.p-z.p).map(v=>`${v.o}発: ${yn(v.p)} ${v.a}(${v.t}) 乗継${v.s}`).join("<br>")}<br><small>※サンプル価格</small>`;
+  const pop=`<b>${c[1]}</b> (${c[0]}) ${c[2]}<br>${[...Object.values(r.per)].sort((a,z)=>a.p-z.p).map(v=>`${v.o}発: ${yn(v.p)} ${v.a}(${v.t}) 乗継${v.s}${v.hub?"("+v.hub+")":""}${v.sep?"<br><small style='color:#c92a2a'>⚠別切り："+v.hub+"で乗継。乗継失敗時の保護なし／預け荷物の受取・再チェックイン／入国要件に注意</small>":""}`).join("<br>")}<br><small>※サンプル価格</small>`;
   if(view=="h"){const cc=L.circle([c[3],c[4]],{radius:1.1e6,stroke:false,fillColor:col,fillOpacity:over?.08:.3,interactive:false}).addTo(lay)}
   const m=L.marker([c[3],c[4]],{icon:L.divIcon({className:"",html:(view=="h"||over||x.p>lim)?`<div class="pd ${over?"gray":""}" style="--c:${over?"#888":col}"></div>`:`<div class="pm" style="--c:${col}">${map.getZoom()>=4?`<small>${c[1]}・${c[2]}</small>`:""}<b>${map.getZoom()>=4?yn(x.p):"¥"+Math.round(x.p/1000)+"k"}</b></div>`,iconSize:[0,0],iconAnchor:[0,0]}),zIndexOffset:-Math.round(x.p/1000)}).bindPopup(pop).addTo(lay);mk[c[0]]=m}
- $("rows").innerHTML=rows.map(r=>{const x=r.best,c=r.c,rem=bud-x.p;return`<tr class="r" data-c="${c[0]}"><td>${c[1]}</td><td>${c[2]}</td><td>${c[0]}</td><td>${x.o}</td><td>${x.a}</td><td><span class="t ${x.t.toLowerCase()}">${x.t}</span></td><td><b>${yn(x.p)}</b> <small>サンプル</small></td><td style="color:${rem<0?"#d6402e":"#1b7f3b"}">${rem<0?"−":""}${yn(Math.abs(rem))}</td><td>${x.h.toFixed(1)}h</td><td>${x.s?x.s+"回":"直行"}</td></tr>`}).join("")||"<tr><td colspan=10>条件に合う目的地がありません</td></tr>"}
+ $("rows").innerHTML=rows.map(r=>{const x=r.best,c=r.c,rem=bud-x.p;return`<tr class="r" data-c="${c[0]}"><td>${c[1]}</td><td>${c[2]}</td><td>${c[0]}</td><td>${x.o}</td><td>${x.a}${x.sep?" <small>別切り</small>":""}</td><td><span class="t ${x.t.toLowerCase()}">${x.t}</span></td><td><b>${yn(x.p)}</b> <small>サンプル</small></td><td style="color:${rem<0?"#d6402e":"#1b7f3b"}">${rem<0?"−":""}${yn(Math.abs(rem))}</td><td>${x.h.toFixed(1)}h</td><td>${x.s?x.s+"回"+(x.hub?"("+x.hub+")":""):"直行"}</td></tr>`}).join("")||"<tr><td colspan=10>条件に合う目的地がありません</td></tr>"}
 $("rows").onclick=e=>{const t=e.target.closest("tr.r");if(!t)return;const m=mk[t.dataset.c],id=t.dataset.c;map.once("moveend",()=>mk[id]&&mk[id].openPopup());map.flyTo(m.getLatLng(),5);$("map").scrollIntoView({behavior:"smooth"})};
 run();
 let zb=map.getZoom()>=4;map.on("zoomend",()=>{const n=map.getZoom()>=4;if(n!==zb){zb=n;run()}});

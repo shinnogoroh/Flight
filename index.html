@@ -38,7 +38,7 @@ table{border-collapse:collapse;width:100%;min-width:640px}th,td{padding:6px 8px;
 .leaflet-popup{position:absolute;text-align:center;margin-bottom:20px}.leaflet-popup-content-wrapper{background:#fff;color:#222;border-radius:10px;padding:1px;text-align:left;box-shadow:0 3px 14px rgba(0,0,0,.4)}.leaflet-popup-content{margin:10px 14px;font-size:13px;line-height:1.5}
 .leaflet-popup-tip-container{width:40px;height:20px;position:absolute;left:50%;margin-left:-20px;overflow:hidden;pointer-events:none}.leaflet-popup-tip{width:17px;height:17px;padding:1px;margin:-10px auto 0;transform:rotate(45deg);background:#fff}.leaflet-popup-close-button{position:absolute;top:0;right:0;padding:4px 8px;text-decoration:none;color:#666}
 </style></head><body>
-<header>✈ 世界航空券マップ <small>Phase 3</small> <span class="badge">サンプルデータ</span></header>
+<header>✈ 世界航空券マップ <small>Phase 4</small> <span class="badge">サンプルデータ</span></header>
 <div class="seg" id="tabs" style="margin:0 10px 8px"><button class="on" data-v="n">通常検索</button><button data-v="b">予算検索</button><button data-v="d">日程検索</button></div><div id="sum" style="margin:0 10px 8px;font-size:13px"></div>
 <div class="ctl">
  <div style="grid-column:1/-1"><label>出発空港（複数選択）</label><div class="chips" id="orig"></div></div>
@@ -50,14 +50,15 @@ table{border-collapse:collapse;width:100%;min-width:640px}th,td{padding:6px 8px;
  <div><label>航空会社タイプ</label><select id="mode"><option value="both">LCCを含む</option><option value="fsc">FSCのみ</option><option value="lcc">LCCのみ</option></select></div>
  <div><label>最大乗継回数</label><select id="stops"><option value="0">直行のみ</option><option value="1">1回まで</option><option value="2" selected>2回まで</option></select></div>
  <div><label>予算上限 <b id="bv"></b></label><input type="range" id="bud" min="3" max="60" step="1" value="15"></div>
- <div><label>所要時間上限 <b id="dv"></b></label><input type="range" id="dur" min="6" max="40" value="40"></div><div><label>LCC+FSC組合せ（別切り）</label><label style="color:var(--tx);font-size:13px"><input type="checkbox" id="mix" checked> 含める</label></div><div><label>予算超過の都市</label><label style="color:var(--tx);font-size:13px"><input type="checkbox" id="hide"> 非表示にする</label></div><div style="grid-column:1/-1"><label>航空会社（タップで除外／もう一度タップで復帰）</label><div class="chips" id="air"></div></div><div><label>預け荷物</label><select id="bag"><option value="0">なし</option><option value="1">1個</option><option value="2">2個</option></select></div><div><label>追加料金（LCC）</label><label style="color:var(--tx);font-size:13px"><input type="checkbox" id="seat"> 座席指定</label> <label style="color:var(--tx);font-size:13px"><input type="checkbox" id="meal"> 機内食</label></div><div><label>価格の基準</label><select id="basis"><option value="base">基本運賃</option><option value="all">追加料金込み（推定）</option></select></div><div><label>色分け</label><select id="cm"><option value="auto">価格分布で自動</option><option value="fix">固定の金額帯</option></select></div>
+ <div><label>所要時間上限 <b id="dv"></b></label><input type="range" id="dur" min="6" max="40" value="40"></div><div><label>LCC+FSC組合せ（別切り）</label><label style="color:var(--tx);font-size:13px"><input type="checkbox" id="mix" checked> 含める</label></div><div><label>予算超過の都市</label><label style="color:var(--tx);font-size:13px"><input type="checkbox" id="hide"> 非表示にする</label></div><div style="grid-column:1/-1"><label>航空会社（タップで除外／もう一度タップで復帰）</label><div class="chips" id="air"></div></div><div><label>預け荷物</label><select id="bag"><option value="0">なし</option><option value="1">1個</option><option value="2">2個</option></select></div><div><label>追加料金（LCC）</label><label style="color:var(--tx);font-size:13px"><input type="checkbox" id="seat"> 座席指定</label> <label style="color:var(--tx);font-size:13px"><input type="checkbox" id="meal"> 機内食</label></div><div><label>価格の基準</label><select id="basis"><option value="base">基本運賃</option><option value="all">追加料金込み（推定）</option></select></div><div style="grid-column:1/-1"><label>Ignav APIキー（この端末にだけ保存・実運賃の確認用）</label><input type="password" id="ikey" placeholder="APIキーを貼り付け" style="width:62%"> <button id="ksave">保存</button> <small id="kst"></small></div><div><label>色分け</label><select id="cm"><option value="auto">価格分布で自動</option><option value="fix">固定の金額帯</option></select></div>
  <div><label>地図表示</label><div class="seg" id="view"><button class="on" data-v="m">マーカー</button><button data-v="h">ヒートマップ</button></div></div>
  <div><label>並べ替え</label><select id="sort"><option value="p">価格順</option><option value="t">所要時間順</option><option value="s">直行優先</option></select></div>
 </div>
 <div class="mapwrap"><div id="map"></div><div id="legend"></div></div>
+<div class="tbl" id="live" style="display:none;padding:10px"></div>
 <div class="tbl" id="cal" style="display:none;padding:10px"></div>
 <div class="tbl"><table><thead><tr><th>都市</th><th>国</th><th>空港</th><th>出発</th><th>航空会社</th><th>区分</th><th>価格</th><th>予算残</th><th>飛行時間</th><th>乗継</th></tr></thead><tbody id="rows"></tbody></table></div>
-<p class="note">※ 表示価格はすべて<b>サンプル（距離とシーズンから算出した模擬値）</b>で、実際の運賃ではありません。LCCは基本運賃のみで手荷物等は含みません。実データ連携はPhase 4で対応予定。地図タイルはOpenStreetMap（国境・地名入り、ダーク調に加工）を利用します。外部画像をブロックするプレビュー環境では、簡易地図で表示されます。</p>
+<p class="note">※ 表示価格はすべて<b>サンプル（距離とシーズンから算出した模擬値）</b>で、実際の運賃ではありません。LCCは基本運賃のみで手荷物等は含みません。実運賃は、各都市のポップアップの「実運賃を確認」で取得します（Ignav APIキーが必要・無料枠は最初の1,000回のみ）。地図タイルはOpenStreetMap（国境・地名入り、ダーク調に加工）を利用します。外部画像をブロックするプレビュー環境では、簡易地図で表示されます。</p>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const D=[["ICN","ソウル","韓国",37.46,126.44],["TPE","台北","台湾",25.08,121.23],["HKG","香港","香港",22.31,113.91],["BKK","バンコク","タイ",13.69,100.75],["SIN","シンガポール","シンガポール",1.36,103.99],["KUL","クアラルンプール","マレーシア",2.75,101.71],["MNL","マニラ","フィリピン",14.51,121.02],["CEB","セブ","フィリピン",10.31,123.98],["SGN","ホーチミン","ベトナム",10.82,106.66],["HAN","ハノイ","ベトナム",21.22,105.81],["DPS","バリ","インドネシア",-8.75,115.17],["CGK","ジャカルタ","インドネシア",-6.13,106.66],["DEL","デリー","インド",28.56,77.1],["DXB","ドバイ","UAE",25.25,55.36],["IST","イスタンブール","トルコ",41.26,28.74],["CDG","パリ","フランス",49.01,2.55],["LHR","ロンドン","英国",51.47,-.45],["FCO","ローマ","イタリア",41.8,12.25],["FRA","フランクフルト","ドイツ",50.03,8.57],["AMS","アムステルダム","オランダ",52.31,4.76],["BCN","バルセロナ","スペイン",41.3,2.08],["LIS","リスボン","ポルトガル",38.77,-9.13],["HEL","ヘルシンキ","フィンランド",60.32,24.96],["VIE","ウィーン","オーストリア",48.11,16.57],["PRG","プラハ","チェコ",50.1,14.26],["CAI","カイロ","エジプト",30.12,31.41],["JNB","ヨハネスブルグ","南アフリカ",-26.14,28.24],["JFK","ニューヨーク","米国",40.64,-73.78],["LAX","ロサンゼルス","米国",33.94,-118.41],["SFO","サンフランシスコ","米国",37.62,-122.38],["HNL","ホノルル","米国",21.32,-157.92],["YVR","バンクーバー","カナダ",49.19,-123.18],["MEX","メキシコシティ","メキシコ",19.44,-99.07],["GRU","サンパウロ","ブラジル",-23.43,-46.47],["SYD","シドニー","豪州",-33.94,151.18],["MEL","メルボルン","豪州",-37.67,144.84],["AKL","オークランド","NZ",-37.01,174.79],["GUM","グアム","米国領",13.48,144.8],["HAM","ハンブルク","ドイツ",53.63,9.99],["BER","ベルリン","ドイツ",52.36,13.5],["MUC","ミュンヘン","ドイツ",48.35,11.79],["ZRH","チューリッヒ","スイス",47.46,8.55],["GVA","ジュネーブ","スイス",46.24,6.11],["MXP","ミラノ","イタリア",45.63,8.72],["VCE","ヴェネツィア","イタリア",45.51,12.35],["FLR","フィレンツェ","イタリア",43.81,11.2],["NAP","ナポリ","イタリア",40.89,14.29],["NCE","ニース","フランス",43.66,7.22],["BRU","ブリュッセル","ベルギー",50.9,4.48],["MAD","マドリード","スペイン",40.47,-3.57],["BUD","ブダペスト","ハンガリー",47.44,19.26],["WAW","ワルシャワ","ポーランド",52.17,20.97],["KRK","クラクフ","ポーランド",50.08,19.78],["CPH","コペンハーゲン","デンマーク",55.62,12.66],["ARN","ストックホルム","スウェーデン",59.65,17.92],["OSL","オスロ","ノルウェー",60.19,11.1],["DUB","ダブリン","アイルランド",53.42,-6.27],["ATH","アテネ","ギリシャ",37.94,23.94],["DBV","ドゥブロヴニク","クロアチア",42.56,18.27],["MLA","マルタ","マルタ",35.86,14.48],["EDI","エディンバラ","英国",55.95,-3.37],["MAN","マンチェスター","英国",53.35,-2.27],["PUS","釜山","韓国",35.18,128.94],["HKT","プーケット","タイ",8.11,98.32],["CNX","チェンマイ","タイ",18.77,98.96],["DAD","ダナン","ベトナム",16.04,108.2],["REP","シェムリアップ","カンボジア",13.41,103.81],["KHH","高雄","台湾",22.58,120.35],["BOM","ムンバイ","インド",19.09,72.87],["DOH","ドーハ","カタール",25.27,51.61],["ORD","シカゴ","米国",41.98,-87.9],["SEA","シアトル","米国",47.45,-122.31],["YYZ","トロント","カナダ",43.68,-79.63],["PEK","北京","中国",40.08,116.6],["PVG","上海","中国",31.14,121.81],["CTS","札幌","日本",43.06,141.69],["OKA","那覇","日本",26.2,127.65]];
@@ -107,11 +108,51 @@ function run(){
  $("legend").innerHTML="<b>価格凡例</b><br>"+COL.map((c,i)=>`<i style="background:${c}"></i>${NAME[i]} ${i==0?"〜"+yn(b[0]):i==4?yn(b[3])+"〜":yn(b[i-1])+"〜"+yn(b[i])}`).join("<br>")+"<br><span style='opacity:.7'>グレー＝予算超過</span>";
  const sort=$("sort").value;rows.sort((a,z)=>sort=="t"?a.best.h-z.best.h:sort=="s"?a.best.s-z.best.s||a.best.p-z.best.p:a.best.p-z.best.p);
  for(const r of rows){const x=r.best,c=r.c,over=x.p>bud,col=COL[cls(x.p,b)];
-  const pop=`<b>${c[1]}</b> (${c[0]}) ${c[2]}<br>${[...Object.values(r.per)].sort((a,z)=>a.p-z.p).map(v=>`${v.o}発: ${yn(v.p)}${$("basis").value=="all"?"(基本"+yn(v.bp)+"+追加"+yn(v.ex)+")":""} ${v.a}(${v.t}) 乗継${v.s}${v.hub?"("+v.hub+")":""}${v.sep?"<br><small style='color:#c92a2a'>⚠別切り："+v.hub+"で乗継。乗継失敗時の保護なし／預け荷物の受取・再チェックイン／入国要件に注意</small>":""}`).join("<br>")}<br><small>※サンプル価格</small>`;
+  const pop=`<b>${c[1]}</b> (${c[0]}) ${c[2]}<br>${[...Object.values(r.per)].sort((a,z)=>a.p-z.p).map(v=>`${v.o}発: ${yn(v.p)}${$("basis").value=="all"?"(基本"+yn(v.bp)+"+追加"+yn(v.ex)+")":""} ${v.a}(${v.t}) 乗継${v.s}${v.hub?"("+v.hub+")":""}${v.sep?"<br><small style='color:#c92a2a'>⚠別切り："+v.hub+"で乗継。乗継失敗時の保護なし／預け荷物の受取・再チェックイン／入国要件に注意</small>":""}`).join("<br>")}<br><small>※サンプル価格</small><br><button data-live="${c[0]}" style="margin-top:4px">実運賃を確認（Ignav）</button>`;
   if(view=="h"){const cc=L.circle([c[3],c[4]],{radius:1.1e6,stroke:false,fillColor:col,fillOpacity:over?.08:.3,interactive:false}).addTo(lay)}
   const m=L.marker([c[3],c[4]],{icon:L.divIcon({className:"",html:(view=="h"||over||x.p>lim)?`<div class="pd ${over?"gray":""}" style="--c:${over?"#888":col}"></div>`:`<div class="pm" style="--c:${col}">${map.getZoom()>=4?`<small>${c[1]}・${c[2]}</small>`:""}<b>${map.getZoom()>=4?yn(x.p):"¥"+Math.round(x.p/1000)+"k"}</b></div>`,iconSize:[0,0],iconAnchor:[0,0]}),zIndexOffset:-Math.round(x.p/1000)}).bindPopup(pop).addTo(lay);mk[c[0]]=m}
  $("rows").innerHTML=rows.map(r=>{const x=r.best,c=r.c,rem=bud-x.p;return`<tr class="r" data-c="${c[0]}"><td>${c[1]}</td><td>${c[2]}</td><td>${c[0]}</td><td>${x.o}</td><td>${x.a}${x.sep?" <small>別切り</small>":""}</td><td><span class="t ${x.t.toLowerCase()}">${x.t}</span></td><td><b>${yn(x.p)}</b> <small>基本${yn(x.bp)}+追加${yn(x.ex)}（推定）</small></td><td style="color:${rem<0?"#d6402e":"#1b7f3b"}">${rem<0?"−":""}${yn(Math.abs(rem))}</td><td>${x.h.toFixed(1)}h</td><td>${x.s?x.s+"回"+(x.hub?"("+x.hub+")":""):"直行"}</td></tr>`}).join("")||"<tr><td colspan=10>条件に合う目的地がありません</td></tr>";extra(rows,bud)}
 $("rows").onclick=e=>{const t=e.target.closest("tr.r");if(!t)return;const m=mk[t.dataset.c],id=t.dataset.c;map.once("moveend",()=>mk[id]&&mk[id].openPopup());map.flyTo(m.getLatLng(),5);$("map").scrollIntoView({behavior:"smooth"})};
+const KEY="ignav_key",CNT="ignav_cnt",CACHE="ignav_cache",LCCODES=["MM","GK","JQ","3K","TR","AK","D7","FD","QZ","VJ","5J","ZG","BX","7C","TW","LJ","IT","HX"],CABIN={"1":"economy","1.5":"premium_economy","2.8":"business"};
+const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+const kst=()=>{$("kst").textContent=ls.get(KEY)?`保存済み・使用 ${ls.get(CNT)||0}/1000回`:"未設定"};
+$("ikey").value=ls.get(KEY)||"";kst();
+$("ksave").onclick=()=>{ls.set(KEY,$("ikey").value.trim());kst()};
+async function ig(path,body){
+ const key=ls.get(KEY);if(!key)throw new Error("先にIgnavのAPIキーを入力して「保存」を押してください");
+ let cache={};try{cache=JSON.parse(ls.get(CACHE)||"{}")}catch(e){}
+ const ck=path+JSON.stringify(body),now=Date.now();
+ if(cache[ck]&&now-cache[ck].t<18e5)return cache[ck].d;
+ const r=await fetch("https://ignav.com"+path,{method:"POST",headers:{"X-Api-Key":key,"Content-Type":"application/json"},body:JSON.stringify(body)});
+ const d=await r.json().catch(()=>({}));
+ if(!r.ok)throw new Error(`Ignavエラー ${r.status} ${d.message||d.error||""}`);
+ ls.set(CNT,(+ls.get(CNT)||0)+1);kst();
+ cache[ck]={t:now,d};const ks=Object.keys(cache);if(ks.length>40)delete cache[ks[0]];
+ ls.set(CACHE,JSON.stringify(cache));return d}
+const money=p=>!p||p.amount==null?"-":(!p.currency||p.currency=="JPY")?yn(p.amount):p.amount+" "+p.currency;
+const rowHtml=i=>{const p=i.price||{},o=i.outbound||{},n=(o.segments||[]).length-1,h=Math.round((o.duration_minutes||0)/6)/10;
+ return `<div style="border:1px solid var(--bd);border-radius:8px;padding:6px 8px;margin:4px 0"><b>${money(p)}</b> <small>${p.status||""}</small> ${o.carrier||""}${i.has_mixed_carriers?"（複数社）":""}・${h}h・${n>0?"乗継"+n+"回":"直行"} <button data-bk="${i.ignav_id}">予約リンク</button><div class="bk"></div></div>`};
+async function live(code){
+ const c=D.find(x=>x[0]==code),box=$("live"),ow=trip=="ow",m=$("mode").value;
+ box.style.display="block";box.scrollIntoView({behavior:"smooth"});
+ let h=`<b>${c[1]}（${code}）の実運賃</b> <span class="badge" style="background:#b2f2bb;color:#1b5e20">Ignav・取得値</span><div style="font-size:12px;color:var(--mu)">${ow?"片道":"往復"} ${$("d1").value}${ow?"":"〜"+$("d2").value}・${$("pax").value}名・取得時点の価格です</div>`;
+ box.innerHTML=h+"<div>取得中…</div>";
+ for(const o of [...sel]){
+  const body={origin:o,destination:code,departure_date:$("d1").value,adults:+$("pax").value,cabin_class:CABIN[$("cls").value],market:"JP",max_stops:+$("stops").value};
+  if(!ow)body.return_date=$("d2").value;
+  if(m=="fsc")body.airlines_exclude=LCCODES;if(m=="lcc")body.airlines_include=LCCODES;
+  h+=`<h4 style="margin:10px 0 4px">${o}発</h4>`;
+  try{const d=await ig(ow?"/api/fares/one-way":"/api/fares/round-trip",body),its=(d.itineraries||[]).slice(0,3);
+   h+=its.length?its.map(rowHtml).join(""):"<div>該当する運賃は見つかりませんでした</div>"}
+  catch(e){h+=`<div style="color:#c92a2a">${e.message=="Failed to fetch"?"ブラウザからIgnavに接続できませんでした（外部サイトからのアクセス制限の可能性）":e.message}</div>`}
+  box.innerHTML=h}}
+document.body.addEventListener("click",async e=>{const t=e.target,ds=t.dataset||{};
+ if(ds.live){live(ds.live);return}
+ if(ds.bk){const box=t.parentElement.querySelector(".bk");box.textContent="取得中…";
+  try{const d=await ig("/api/fares/booking-links",{ignav_id:ds.bk}),L=[];
+   (d.booking_options||[]).forEach(b=>(b.links||[]).forEach(l=>{const u=l.url||l.link||l.href;if(u&&/^https:\/\//.test(u))L.push([l.label||l.name||l.provider||l.site||"予約サイト",u,(b.legs||[]).join("+")])}));
+   box.innerHTML=L.length?L.map(([a,u,g])=>`<a href="${u}" target="_blank" rel="noopener">${a}${g?"（"+g+"）":""}</a>`).join("<br>"):"予約リンクを取得できませんでした"}
+  catch(er){box.textContent=er.message}}},true);
 let tab="n",calC="";
 $("tabs").onclick=e=>{const v=e.target.dataset.v;if(!v)return;tab=v;[...$("tabs").children].forEach(b=>b.classList.toggle("on",b===e.target));$("hide").checked=v=="b";$("cal").style.display=v=="d"?"block":"none";run()};
 $("cal").onchange=e=>{if(e.target.id=="calsel"){calC=e.target.value;run()}};
